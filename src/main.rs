@@ -1,5 +1,7 @@
 use std::env;
 
+mod handlers;
+mod payments_dto;
 mod routes;
 
 #[tokio::main]
