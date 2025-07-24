@@ -8,7 +8,7 @@ pub async fn post(
 ) -> Result<(), reqwest::Error> {
     http_client
         .post(payment_processor_url)
-        .json(&payment)
+        .json(payment)
         .send()
         .await?;
 
