@@ -13,7 +13,7 @@ async fn main() {
 
     let app_state = AppState::new();
 
-    let app = routes::init_routes(app_state);
+    let app = routes::init(app_state);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
         .await

@@ -4,7 +4,7 @@ use axum::{
     routing::{get, post},
 };
 
-pub fn init_routes(app_state: AppState) -> Router {
+pub fn init(app_state: AppState) -> Router {
     let routes = Router::new()
         .route("/payments", post(handlers::payments))
         .route("/payments-summary", get(handlers::payments_summary))
