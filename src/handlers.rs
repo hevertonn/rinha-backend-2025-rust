@@ -3,7 +3,7 @@ use axum::extract::{Json, State};
 
 pub async fn payments(State(app_state): State<AppState>, Json(payload): Json<PaymentDTO>) {
     if let Err(e) = payment_processor::post(
-        &app_state.payment_processor_url.default,
+        &app_state.payment_processors_routes.default,
         &app_state.http_client,
         &payload,
     )
@@ -12,7 +12,7 @@ pub async fn payments(State(app_state): State<AppState>, Json(payload): Json<Pay
         println!("Payment processor default error: {}", e);
 
         if let Err(e) = payment_processor::post(
-            &app_state.payment_processor_url.fallback,
+            &app_state.payment_processors_routes.fallback,
             &app_state.http_client,
             &payload,
         )
