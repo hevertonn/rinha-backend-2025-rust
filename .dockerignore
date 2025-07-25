@@ -4,3 +4,4 @@ docker-compose.yml
 nginx.conf
 .gitignore
 .git
+LICENSE
