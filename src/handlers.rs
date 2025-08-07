@@ -1,26 +1,44 @@
-use crate::{payment_processor, payments_dto::PaymentDTO, state::AppState};
+use crate::{
+    payments_dto::{PaymentDTO, PaymentProcessor, PaymentSummaryDTO},
+    state::AppState,
+};
 use axum::extract::{Json, State};
+use redis::Commands;
 
 pub async fn payments(State(app_state): State<AppState>, Json(payload): Json<PaymentDTO>) {
-    if let Err(e) = payment_processor::post(
-        &app_state.payment_processors_routes.default,
-        &app_state.http_client,
-        &payload,
-    )
-    .await
-    {
-        println!("Payment processor default error: {}", e);
+    let mut conn = app_state.redis_connection_pool.get().unwrap();
 
-        if let Err(e) = payment_processor::post(
-            &app_state.payment_processors_routes.fallback,
-            &app_state.http_client,
-            &payload,
+    let _: () = conn
+        .lpush(
+            "payments:orders",
+            payload.correlation_id + ":" + &payload.amount.to_string(),
         )
-        .await
-        {
-            println!("Payment processor fallback error: {}", e);
-        }
-    }
+        .unwrap();
 }
 
-pub async fn payments_summary() {}
+pub async fn payments_summary(State(app_state): State<AppState>) -> Json<PaymentSummaryDTO> {
+    let mut conn = app_state.redis_connection_pool.get().unwrap();
+
+    let fields = vec!["total_requests", "total_amount"];
+
+    let result: Vec<Vec<String>> = redis::pipe()
+        .cmd("HMGET")
+        .arg("payments:summary:default")
+        .arg(&fields)
+        .cmd("HMGET")
+        .arg("payments:summary:fallback")
+        .arg(&fields)
+        .query(&mut conn)
+        .unwrap();
+
+    Json(PaymentSummaryDTO {
+        payment_processor_default: PaymentProcessor {
+            total_requests: result[0][0].parse().unwrap(),
+            total_amount: result[0][1].parse().unwrap(),
+        },
+        payment_processor_fallback: PaymentProcessor {
+            total_requests: result[1][0].parse().unwrap(),
+            total_amount: result[1][1].parse().unwrap(),
+        },
+    })
+}
