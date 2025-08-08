@@ -1,7 +1,7 @@
 use r2d2::Pool;
 use redis::Client;
 use reqwest::Client as ReqwestClient;
-use std::env;
+use std::{env, sync::Arc};
 
 #[derive(Clone)]
 pub struct PaymentProcessorsRoutes {
@@ -32,3 +32,5 @@ impl AppState {
         }
     }
 }
+
+pub type SharedState = Arc<AppState>;

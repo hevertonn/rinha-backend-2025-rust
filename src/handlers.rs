@@ -1,12 +1,12 @@
 use crate::{
     payments_dto::{PaymentDTO, PaymentProcessor, PaymentSummaryDTO},
-    state::AppState,
+    state::SharedState,
 };
 use axum::extract::{Json, State};
 use redis::Commands;
 
-pub async fn payments(State(app_state): State<AppState>, Json(payload): Json<PaymentDTO>) {
-    let mut conn = app_state.redis_connection_pool.get().unwrap();
+pub async fn payments(State(shared_state): State<SharedState>, Json(payload): Json<PaymentDTO>) {
+    let mut conn = shared_state.redis_connection_pool.get().unwrap();
 
     let _: () = conn
         .lpush(
@@ -16,8 +16,8 @@ pub async fn payments(State(app_state): State<AppState>, Json(payload): Json<Pay
         .unwrap();
 }
 
-pub async fn payments_summary(State(app_state): State<AppState>) -> Json<PaymentSummaryDTO> {
-    let mut conn = app_state.redis_connection_pool.get().unwrap();
+pub async fn payments_summary(State(shared_state): State<SharedState>) -> Json<PaymentSummaryDTO> {
+    let mut conn = shared_state.redis_connection_pool.get().unwrap();
 
     let fields = vec!["total_requests", "total_amount"];
 

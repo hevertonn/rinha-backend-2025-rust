@@ -1,5 +1,6 @@
 use state::AppState;
 use std::env;
+use std::sync::Arc;
 
 mod handlers;
 mod payment_processor;
@@ -11,9 +12,9 @@ mod state;
 async fn main() {
     let port = env::var("PORT").unwrap_or("8080".to_string());
 
-    let app_state = AppState::new();
+    let shared_state = Arc::new(AppState::new());
 
-    let app = routes::init(app_state);
+    let app = routes::init(shared_state);
 
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port))
         .await
